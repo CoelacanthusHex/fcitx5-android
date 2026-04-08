@@ -141,6 +141,14 @@ class FcitxInputMethodService : LifecycleInputMethodService() {
         prefs.advanced.ignoreSystemWindowInsets,
     )
 
+    private val arrowKeyHandleWhitelist = setOf(
+        "org.mozilla.firefox",
+        "org.mozilla.firefox_beta",
+        "org.mozilla.fenix",
+        "org.mozilla.fenix.debug",
+        "org.mozilla.fennec_fdroid",
+    )
+
     private fun replaceInputView(theme: Theme): InputView {
         val newInputView = InputView(this, fcitx, theme)
         setInputView(newInputView)
@@ -392,7 +400,10 @@ class FcitxInputMethodService : LifecycleInputMethodService() {
     }
 
     private fun handleArrowKey(keyCode: Int) {
-        if (currentInputEditorInfo.inputType and InputType.TYPE_MASK_CLASS == InputType.TYPE_NULL) {
+        val uid = currentInputBinding.uid
+        val pkgName = pkgNameCache.forUid(uid)
+        if (currentInputEditorInfo.inputType and InputType.TYPE_MASK_CLASS == InputType.TYPE_NULL ||
+            arrowKeyHandleWhitelist.contains(pkgName)) {
             sendDownUpKeyEvents(keyCode)
             return
         }
