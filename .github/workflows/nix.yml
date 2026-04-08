@@ -21,7 +21,31 @@ jobs:
         with:
           name: fcitx5-android
           authToken: "${{ secrets.CACHIX_AUTH_TOKEN }}"
-      - name: Build Release APK
+      - name: Build Debug APK
         run: |
-          nix develop .#noAS --command ./gradlew :app:assembleRelease
-          nix develop .#noAS --command ./gradlew :assembleReleasePlugins
+          nix develop .#noAS --command ./gradlew :app:assembleDebug
+          nix develop .#noAS --command ./gradlew :assembleDebugPlugins
+
+      - name: Upload app
+        uses: actions/upload-artifact@v6
+        with:
+          name: app-${{ matrix.os }}
+          path: app/build/outputs/apk/debug/
+
+      - name: Pack plugins
+        shell: bash
+        run: |
+          mkdir plugins-to-upload
+          for i in $(ls plugin)
+          do
+            if [ -d "plugin/${i}" ]
+            then
+              mv "plugin/${i}/build/outputs/apk/debug" "plugins-to-upload/${i}"
+            fi
+          done
+
+      - name: Upload plugins
+        uses: actions/upload-artifact@v6
+        with:
+          name: plugins-${{ matrix.os }}
+          path: plugins-to-upload
